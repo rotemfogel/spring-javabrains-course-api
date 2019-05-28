@@ -1,14 +1,16 @@
 package io.javabrains.courses;
 
+import io.javabrains.common.DefaultController;
 import io.javabrains.common.DuplicateEntityException;
+import io.javabrains.common.EntityType;
 import io.javabrains.topic.TopicService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -21,55 +23,54 @@ import static org.springframework.http.HttpStatus.*;
  */
 @RestController
 public class CourseController {
-    @Autowired
-    private CourseService courseService;
+    private static final Logger log = LoggerFactory.getLogger(CourseController.class);
+
+    private final TopicService topicService;
+    private final CourseService courseService;
 
     @Autowired
-    private TopicService topicService;
-
-    private static final ResponseEntity BAD_REQUEST_RESPONSE = new ResponseEntity(BAD_REQUEST);
-    private static final ResponseEntity NO_CONTENT_RESPONSE = new ResponseEntity(NO_CONTENT);
-    private static final ResponseEntity OK_RESPONSE = new ResponseEntity(OK);
+    public CourseController(TopicService topicService, CourseService courseService) {
+        this.topicService = topicService;
+        this.courseService = courseService;
+    }
 
     @RequestMapping(method = RequestMethod.POST, value = "/topics/{topicId}/courses")
-    public ResponseEntity<Course> addCourse(@PathVariable final String topicId, @RequestBody final Course course) {
-        if (!topicExists(topicId)) return BAD_REQUEST_RESPONSE;
+    public ResponseEntity addCourse(@PathVariable final String topicId, @RequestBody final Course course) {
+        if (!topicExists(topicId)) return DefaultController.badRequest(EntityType.Topic, topicId);
         try {
-            return new ResponseEntity<>(courseService.addCourse(course), CREATED);
+            return new ResponseEntity<>(courseService.addCourse(course.setTopic(topicId)), CREATED);
         } catch (DuplicateEntityException e) {
-            return new ResponseEntity<>(CONFLICT);
+            log.error(e.getMessage(), e);
+            return new ResponseEntity(CONFLICT);
         }
     }
 
     @RequestMapping("/topics/{topicId}/courses/{id}")
-    public ResponseEntity<Course> getCourse(@PathVariable final String topicId, @PathVariable final String id) {
-        if (!topicExists(topicId)) return BAD_REQUEST_RESPONSE;
-        Optional<Course> maybeCourse = courseService.getCourse(id);
-        return maybeCourse.isPresent() ? new ResponseEntity<>(maybeCourse.get(), OK) : NO_CONTENT_RESPONSE;
+    public ResponseEntity getCourse(@PathVariable final String topicId, @PathVariable final String id) {
+        if (!topicExists(topicId)) return DefaultController.badRequest(EntityType.Topic, topicId);
+        return ResponseEntity.of(courseService.getCourse(id));
     }
 
-    @RequestMapping("/topic/{topicId}/courses")
-    public ResponseEntity<List<Course>> getAllCourses(@PathVariable final String topicId) {
-        return new ResponseEntity<>(courseService
-                .getAllCourses()
-                .stream()
-                .filter(c -> c.getId().equals(topicId))
-                .collect(Collectors.toList()), OK);
+    @RequestMapping("/topics/{topicId}/courses")
+    public ResponseEntity getAllCourses(@PathVariable final String topicId) {
+        if (!topicExists(topicId)) return DefaultController.badRequest(EntityType.Topic, topicId);
+        return ResponseEntity.of(Optional.of(courseService.getAllCoursesByTopic(topicId)));
     }
 
-    @RequestMapping(method = RequestMethod.PUT, value = "/topic/{topicId}/courses/{id}")
-    public ResponseEntity<Course> updateCourse(@PathVariable final String topicId, @PathVariable final String id, @RequestBody final Course course) {
-        if (!topicExists(topicId)) return BAD_REQUEST_RESPONSE;
-        return new ResponseEntity<>(courseService.updateCourse(course), OK);
+    @RequestMapping(method = RequestMethod.PUT, value = "/topics/{topicId}/courses/{id}")
+    public ResponseEntity updateCourse(@PathVariable final String topicId, @PathVariable final String id, @RequestBody final Course course) {
+        if (!topicExists(topicId)) return DefaultController.badRequest(EntityType.Topic, topicId);
+        if (!course.getId().equals(id)) return ResponseEntity.badRequest().build();
+        return new ResponseEntity<>(courseService.updateCourse(course.setTopic(topicId)), OK);
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, value = "/topic/{topicId}/courses/{id}")
-    public ResponseEntity<Course> deleteCourse(@PathVariable final String topicId, @PathVariable final String id) {
-        if (!topicExists(topicId)) return BAD_REQUEST_RESPONSE;
+    @RequestMapping(method = RequestMethod.DELETE, value = "/topics/{topicId}/courses/{id}")
+    public ResponseEntity deleteCourse(@PathVariable final String topicId, @PathVariable final String id) {
         courseService.deleteCourse(id);
-        return OK_RESPONSE;
+        return ResponseEntity.ok().build();
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean topicExists(final String id) {
         return topicService.exists(id);
     }

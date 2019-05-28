@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+import static org.springframework.http.HttpStatus.CREATED;
+
 /**
  * project: course-api
  * package: io.javabrains.topic
@@ -18,37 +20,42 @@ import java.util.Optional;
  */
 @RestController
 public class TopicController {
+    private final TopicService topicService;
+
     @Autowired
-    private TopicService service;
+    public TopicController(TopicService topicService) {
+        this.topicService = topicService;
+    }
 
     @RequestMapping(method = RequestMethod.POST, value = "/topics")
-    public ResponseEntity<Topic> addTopic(@RequestBody final Topic topic) {
+    public ResponseEntity addTopic(@RequestBody final Topic topic) {
         try {
-            Topic response = service.addTopic(topic);
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
+            return new ResponseEntity<>(topicService.addTopic(topic), CREATED);
         } catch (DuplicateEntityException e) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
     }
 
     @RequestMapping("/topics/{id}")
-    public Topic getTopic(@PathVariable final String id) {
-        Optional<Topic> maybeTopic = service.getTopic(id);
-        return maybeTopic.isPresent() ? maybeTopic.get() : null;
+    public ResponseEntity<Topic> getTopic(@PathVariable final String id) {
+        Optional<Topic> maybeTopic = topicService.getTopic(id);
+        return ResponseEntity.of(maybeTopic);
     }
 
     @RequestMapping("/topics")
-    public List<Topic> getAllTopics() {
-        return service.getAllTopics();
+    public ResponseEntity<List<Topic>> getAllTopics() {
+        return ResponseEntity.of(Optional.of(topicService.getAllTopics()));
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/topics/{id}")
-    public void updateTopic(@PathVariable final String id, @RequestBody final Topic topic) {
-        service.updateTopic(topic);
+    public ResponseEntity updateTopic(@PathVariable final String id, @RequestBody final Topic topic) {
+        if (!topic.getId().equals(id)) return ResponseEntity.badRequest().build();
+        return ResponseEntity.of(Optional.of(topicService.updateTopic(topic)));
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/topics/{id}")
-    public void deleteTopic(@PathVariable final String id) {
-        service.deleteTopic(id);
+    public ResponseEntity deleteTopic(@PathVariable final String id) {
+        topicService.deleteTopic(id);
+        return ResponseEntity.ok().build();
     }
 }

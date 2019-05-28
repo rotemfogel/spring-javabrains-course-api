@@ -17,31 +17,33 @@ import java.util.Optional;
  */
 @Service
 public class CourseService {
-    @Autowired
-    private CourseRepository courseRepository;
+    private final CourseRepository courseRepository;
 
-    public Course addCourse(final Course course) throws DuplicateEntityException {
-        if (getCourse(course.getId()).isPresent()) throw new DuplicateEntityException(String.format("course with id [%s] already exists", course.getId()));
+    @Autowired
+    public CourseService(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
+    }
+
+    Course addCourse(final Course course) throws DuplicateEntityException {
+        if (getCourse(course.getId()).isPresent())
+            throw new DuplicateEntityException(String.format("course with id [%s] already exists", course.getId()));
         return courseRepository.save(course);
     }
 
-    public Optional<Course> getCourse(final String id) {
+    Optional<Course> getCourse(final String id) {
         return courseRepository.findById(id);
     }
 
-    public List<Course> getAllCourses() {
-        final List<Course> courses = new ArrayList<>();
-        courseRepository.findAll().forEach(courses::add);
-        return courses;
+    List<Course> getAllCoursesByTopic(final String topicId) {
+        return new ArrayList<>(courseRepository.findAllByTopicId(topicId));
     }
 
-    public Course updateCourse(final Course course) {
+    Course updateCourse(final Course course) {
         return courseRepository.save(course);
     }
 
-    public void deleteCourse(final String id) {
+    void deleteCourse(final String id) {
         Optional<Course> maybeCourse = getCourse(id);
-        if (maybeCourse.isPresent())
-            courseRepository.delete(maybeCourse.get());
+        maybeCourse.ifPresent(courseRepository::delete);
     }
 }

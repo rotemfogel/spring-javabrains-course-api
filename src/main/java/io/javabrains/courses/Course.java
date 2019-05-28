@@ -1,5 +1,6 @@
 package io.javabrains.courses;
 
+import io.javabrains.topic.Topic;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,6 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 /**
  * project: course-api
@@ -18,12 +20,20 @@ import javax.persistence.Id;
 @Data
 @Getter
 @Setter
-@NoArgsConstructor
 @Entity
-public class Course {
+@NoArgsConstructor
+class Course {
 
     @Id
     private String id;
     private String name;
     private String description;
+
+    @ManyToOne
+    private Topic topic;
+
+    Course setTopic(final String topicId) {
+        this.topic = new Topic(topicId);
+        return this;
+    }
 }

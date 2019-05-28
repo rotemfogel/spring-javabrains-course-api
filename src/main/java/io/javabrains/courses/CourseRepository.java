@@ -2,6 +2,8 @@ package io.javabrains.courses;
 
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.List;
+
 /**
  * project: course-api
  * package: io.javabrains.course
@@ -10,5 +12,5 @@ import org.springframework.data.repository.CrudRepository;
  * author:  rotem
  */
 public interface CourseRepository extends CrudRepository<Course, String> {
-
+    List<Course> findAllByTopicId(final String id);
 }

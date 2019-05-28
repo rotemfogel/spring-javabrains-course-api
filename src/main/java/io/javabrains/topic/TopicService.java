@@ -17,32 +17,36 @@ import java.util.Optional;
  */
 @Service
 public class TopicService {
-    @Autowired
-    private TopicRepository topicRepository;
+    private final TopicRepository topicRepository;
 
-    public Topic addTopic(final Topic topic) throws DuplicateEntityException {
-        if (getTopic(topic.getId()).isPresent()) throw new DuplicateEntityException(String.format("topic with id [%s] already exists", topic.getId()));
+    @Autowired
+    public TopicService(TopicRepository topicRepository) {
+        this.topicRepository = topicRepository;
+    }
+
+    Topic addTopic(final Topic topic) throws DuplicateEntityException {
+        if (getTopic(topic.getId()).isPresent())
+            throw new DuplicateEntityException(String.format("topic with id [%s] already exists", topic.getId()));
         return topicRepository.save(topic);
     }
 
-    public Optional<Topic> getTopic(final String id) {
+    Optional<Topic> getTopic(final String id) {
         return topicRepository.findById(id);
     }
 
-    public List<Topic> getAllTopics() {
+    List<Topic> getAllTopics() {
         final List<Topic> topics = new ArrayList<>();
         topicRepository.findAll().forEach(topics::add);
         return topics;
     }
 
-    public Topic updateTopic(final Topic topic) {
+    Topic updateTopic(final Topic topic) {
         return topicRepository.save(topic);
     }
 
-    public void deleteTopic(final String id) {
+    void deleteTopic(final String id) {
         Optional<Topic> maybeTopic = getTopic(id);
-        if (maybeTopic.isPresent())
-            topicRepository.delete(maybeTopic.get());
+        maybeTopic.ifPresent(topicRepository::delete);
     }
 
     public boolean exists(final String id) {
