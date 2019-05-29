@@ -1,4 +1,4 @@
-package io.javabrains.courses;
+package io.javabrains.course;
 
 import io.javabrains.common.exceptions.DuplicateEntityException;
 import io.javabrains.common.exceptions.MissingEntityException;
@@ -57,12 +57,7 @@ public class CourseController {
 
     @RequestMapping("/topics/{topicId}/courses/{name}")
     public ResponseEntity getByName(@PathVariable String topicId, @PathVariable String name) {
-        try {
-            return ResponseEntity.of(Optional.of(courseService.getAllCoursesByName(topicId, name)));
-        } catch (MissingEntityException e) {
-            log.error("error getting course by name", e);
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.of(Optional.of(courseService.getAllCoursesByName(name)));
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/topics/{topicId}/courses/{id}")

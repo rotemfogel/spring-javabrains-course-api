@@ -1,4 +1,4 @@
-package io.javabrains.courses;
+package io.javabrains.course;
 
 import io.javabrains.common.exceptions.DuplicateEntityException;
 import io.javabrains.common.exceptions.MissingEntityException;
@@ -30,31 +30,40 @@ public class CourseService {
     }
 
     Course addCourse(final Course course, final String topicId) throws MissingEntityException, DuplicateEntityException {
-        if (getCourse(topicId, course.getId()).isPresent())
+        final Optional<Topic> topic = getTopic(topicId);
+        if (!topic.isPresent())
+            throw new MissingEntityException(String.format("topic [%s] does not exist", topicId));
+        final Optional<Course> current = getCourse(topicId, course.getId(), true);
+        if (current.isPresent())
             throw new DuplicateEntityException(String.format("course with id [%s] already exists", course.getId()));
-        return courseRepository.save(course);
+        return courseRepository.save(course.setTopic(topic.get()));
     }
 
     Optional<Course> getCourse(final String topicId, final String id) throws MissingEntityException {
-        if (!getTopic(topicId).isPresent())
-            throw new MissingEntityException(String.format("topic [%s] does not exist", topicId));
+        return getCourse(topicId, id, false);
+    }
+
+    private Optional<Course> getCourse(final String topicId, final String id, final boolean skip) throws MissingEntityException {
+        if (!skip) {
+            if (!getTopic(topicId).isPresent())
+                throw new MissingEntityException(String.format("topic [%s] does not exist", topicId));
+        }
         return courseRepository.findById(id);
     }
 
-    List<Course> getAllCoursesByName(final String topicId, final String name) throws MissingEntityException {
-        if (!getTopic(topicId).isPresent())
-            throw new MissingEntityException(String.format("topic [%s] does not exist", topicId));
+    List<Course> getAllCoursesByName(final String name) {
         return new ArrayList<>(courseRepository.findByName(name));
     }
 
     List<Course> getAllCoursesByTopic(final String topicId) {
-        return new ArrayList<>(courseRepository.findByTopicId(topicId));
+        return new ArrayList<>(courseRepository.findAllByTopicId(topicId));
     }
 
     Course updateCourse(final String topicId, final Course course) throws MissingEntityException {
-        if (!getTopic(topicId).isPresent())
+        final Optional<Topic> topic = getTopic(topicId);
+        if (!topic.isPresent())
             throw new MissingEntityException(String.format("topic [%s] does not exist", topicId));
-        return courseRepository.save(course);
+        return courseRepository.save(course.setTopic(topic.get()));
     }
 
     void deleteCourse(final String topicId, final String id) throws MissingEntityException {

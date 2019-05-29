@@ -1,10 +1,11 @@
-package io.javabrains.courses;
+package io.javabrains.course;
 
 import io.javabrains.topic.Topic;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import javax.persistence.*;
 
@@ -20,6 +21,7 @@ import javax.persistence.*;
 @Setter
 @Entity
 @Table(name = "courses")
+@Accessors(chain = true)
 @NoArgsConstructor
 class Course {
 

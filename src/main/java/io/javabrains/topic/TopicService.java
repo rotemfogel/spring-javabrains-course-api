@@ -31,12 +31,13 @@ public class TopicService {
         return topicRepository.save(topic);
     }
 
-    @Cacheable(value = "topics", key = "#id")
+    @Cacheable(value = "topics")
     public Optional<Topic> getTopic(final String id) {
         return topicRepository.findById(id);
     }
 
-    List<Topic> getAllTopics() {
+    @Cacheable(value = "topics")
+    public List<Topic> getAllTopics() {
         final List<Topic> topics = new ArrayList<>();
         topicRepository.findAll().forEach(topics::add);
         return topics;
