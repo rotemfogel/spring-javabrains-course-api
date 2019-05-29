@@ -12,5 +12,7 @@ import java.util.List;
  * author:  rotem
  */
 public interface CourseRepository extends CrudRepository<Course, String> {
-    List<Course> findAllByTopicId(final String id);
+    List<Course> findByTopicId(final String id);
+
+    List<Course> findByName(final String name);
 }

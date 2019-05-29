@@ -6,9 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 /**
  * project: course-api
@@ -21,6 +19,7 @@ import javax.persistence.ManyToOne;
 @Getter
 @Setter
 @Entity
+@Table(name = "courses")
 @NoArgsConstructor
 class Course {
 
@@ -29,11 +28,6 @@ class Course {
     private String name;
     private String description;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Topic topic;
-
-    Course setTopic(final String topicId) {
-        this.topic = new Topic(topicId);
-        return this;
-    }
 }

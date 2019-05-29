@@ -4,6 +4,7 @@ import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * project: course-api
@@ -18,6 +19,7 @@ import javax.persistence.Id;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "topics")
 public class Topic {
 
     @Id
@@ -25,7 +27,4 @@ public class Topic {
     private String name;
     private String description;
 
-    public Topic(String id) {
-        this(id, "", "");
-    }
 }

@@ -1,4 +1,4 @@
-package io.javabrains.common;
+package io.javabrains.common.exceptions;
 
 /**
  * project: course-api

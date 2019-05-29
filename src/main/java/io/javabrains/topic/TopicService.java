@@ -1,7 +1,8 @@
 package io.javabrains.topic;
 
-import io.javabrains.common.DuplicateEntityException;
+import io.javabrains.common.exceptions.DuplicateEntityException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,7 +31,8 @@ public class TopicService {
         return topicRepository.save(topic);
     }
 
-    Optional<Topic> getTopic(final String id) {
+    @Cacheable(value = "topics", key = "#id")
+    public Optional<Topic> getTopic(final String id) {
         return topicRepository.findById(id);
     }
 
@@ -47,9 +49,5 @@ public class TopicService {
     void deleteTopic(final String id) {
         Optional<Topic> maybeTopic = getTopic(id);
         maybeTopic.ifPresent(topicRepository::delete);
-    }
-
-    public boolean exists(final String id) {
-        return topicRepository.existsById(id);
     }
 }
